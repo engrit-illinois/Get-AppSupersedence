@@ -186,10 +186,15 @@ Optional. Recommend leaving default.
 The site code of the SCCM site to query.  
 Default is `MP0`.  
 
-### -ProviderMachineName
+### -Provider
 Optional. Recommend leaving default.  
 The SMS provider machine name.  
 Default is `sccmcas.ad.uillinois.edu`.  
+
+### -CMPSModulePath
+Optional string, representing the local path where the ConfigurationManager Powershell module exists.  
+Default value is `$($ENV:SMS_ADMIN_UI_PATH)\..\ConfigurationManager.psd1`, because there's where it is for us.  
+You may need to change this, depending on your SCCM (Console) version. The path has changed across various versions of SCCM, but the environment variable used by default should account for those changes in most cases.  
 
 # Notes
 - Expect it to take something on the order of 10 minutes to process a large OSD TS.  Depends on how numerous and complicated the supersedence chains are.  
