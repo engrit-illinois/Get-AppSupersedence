@@ -201,4 +201,4 @@ You may need to change this, depending on your SCCM (Console) version. The path 
 - If necessary, re-import the module using `Import-Module "c:\path\to\script\Get-AppSupersedence.psm1" -Force`.  Useful after you've made changes to the script source.  
 - You may need to escape TS and application names with special characters, e.g. `Get-AppSupersedence "Notepad\+\+ - Latest"`.  
 - Ignore `Get-AppSupersedenceByTS_old.psm1`. This was the previous iteration of the script, which doesn't support the `-AppNames` or `-Collection` parameters. It's kept for the author's reference.
-- By mseng3.
+- By mseng3. See my other projects here: https://github.com/mmseng/code-compendium.
