@@ -29,10 +29,10 @@ Also outputs some useful info about the referenced apps.
 # Usage
 1. Download `Get-AppSupersedence.psm1` to `$HOME\Documents\WindowsPowerShell\Modules\Get-AppSupersedence\Get-AppSupersedence.psm1`
 2. Run it, e.g.:
-  - `Get-AppSupersedence -AppNames "Name of app"`
-  - `Get-AppSupersedence -AppNames "Name of app 1","Name of app 2","Name of app 3"`
-  - `Get-AppSupersedence -TS "Name of TS"`
-  - `Get-AppSupersedence -Collection "Name of collection"`
+    - `Get-AppSupersedence -AppNames "Name of app"`
+    - `Get-AppSupersedence -AppNames "Name of app 1","Name of app 2","Name of app 3"`
+    - `Get-AppSupersedence -TS "Name of TS"`
+    - `Get-AppSupersedence -Collection "Name of collection"`
 
 ## Example output
 _Note: if run in Powershell console, lines which reference invalid apps are colored red, for easier skimming._  
