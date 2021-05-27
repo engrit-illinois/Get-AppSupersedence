@@ -27,9 +27,8 @@ Also outputs some useful info about the referenced apps.
 - Must be run AS a user with permissions to the campus SCCM service.  
 
 # Usage
-1. Download the script (just the psm1 file)
-1. Import the script as a module: `Import-Module "c:\path\to\script\Get-AppSupersedence.psm1"`
-1. Run it:
+1. Download `Get-AppSupersedence.psm1` to `$HOME\Documents\WindowsPowerShell\Modules\Get-AppSupersedence\Get-AppSupersedence.psm1`
+2. Run it:
 - `Get-AppSupersedence -AppNames "Name of app"`
 - `Get-AppSupersedence -AppNames "Name of app 1","Name of app 2","Name of app 3"`
 - `Get-AppSupersedence -TS "Name of TS"`
