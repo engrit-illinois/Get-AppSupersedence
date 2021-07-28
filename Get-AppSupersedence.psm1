@@ -71,6 +71,10 @@ function Get-AppSupersedence {
 	
 	# Used as a sentinal for logic flow when an invalid app reference is found
 	$INVALID = "{INVALID}"
+	
+	# At some point warnings about using certain cmdlets without the -Fast parameter started being shown.
+	# This disables those warnings.
+	$CMPSSuppressFastNotUsedCheck = $true
 
 	# -----------------------------------------------------------------
 	# Functions
@@ -351,7 +355,7 @@ function Get-AppSupersedence {
 		}
 		else {
 			$tsRefs = $tsData | Select ReferencesCount,References
-			log "Found $($tsRefs.ReferencesCount) references in TS `"$ts`":" -level 1
+			log "Found $($tsRefs.ReferencesCount) references in TS `"$ts`" (there might still be references in child TSes):" -level 1
 			
 			# For progress bar completion
 			$progress = 0
