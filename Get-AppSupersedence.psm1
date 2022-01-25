@@ -37,7 +37,10 @@ function Get-AppSupersedence {
 		[string]$Provider="sccmcas.ad.uillinois.edu",
 		
 		# ConfigurationManager Powershell module path
-		[string]$CMPSModulePath="$($ENV:SMS_ADMIN_UI_PATH)\..\ConfigurationManager.psd1"
+		[string]$CMPSModulePath="$($ENV:SMS_ADMIN_UI_PATH)\..\ConfigurationManager.psd1",
+		
+		# Caching
+		[switch]$DisableCaching
 	)
 
 
@@ -75,6 +78,11 @@ function Get-AppSupersedence {
 	# At some point warnings about using certain cmdlets without the -Fast parameter started being shown.
 	# This disables those warnings.
 	$CMPSSuppressFastNotUsedCheck = $true
+	
+	# Cache variables for apps, so we don't have to retrieve the same app multiple times
+	# For when multiple apps supersede the same app
+	$script:CachedAppsFast = @()
+	$script:CachedApps = @()
 
 	# -----------------------------------------------------------------
 	# Functions
@@ -176,11 +184,42 @@ function Get-AppSupersedence {
 		# Find app using -Fast flag to speed up searching
 		log "Getting app where `"$idType`" matches `"$id`"..." -debug 2 -level ($level + 1)
 		
-		#$idSanitized = Sanitize-ID $id
-		#$appID = Get-CMApplication -Fast | where { $_.$idType -match $idSanitized } | select CI_ID
-		#$appID = Get-CMApplication -Fast | where { $_.$idType -like $idSanitized } | select CI_ID
-		
-		$appID = Get-CMApplication -Fast | where { $_.$idType -eq $id } | select CI_ID
+		#If caching isn't disabled
+		if(-not $DisableCaching) {
+			log "Looking for app in `"fast`" cache..." -debug 2 -level ($level + 2)
+			
+			# Get "fast" app cache variable
+			$cachedAppsFast = Get-Variable -Name "CachedAppsFast" -Scope "Script" -ValueOnly
+			
+			# Attempt to get the "fast" app from the cache
+			$app = $cachedAppsFast | Where { $_.$idType -eq $id }
+			
+			# If we failed, get it from MECM and cache it
+			if(-not $app) {
+				log "App not found in cache. Retrieving from MECM..." -debug 2 -level ($level + 3)
+				$app = Get-CMApplication -Fast | Where { $_.$idType -eq $id }
+				Set-Variable -Name "CachedAppsFast" -Scope "Script" -Value ($cachedAppsFast + @($app))
+			}
+			else {
+				log "Found app in cache." -debug 2 -level ($level + 3)
+			}
+			
+			# Grab the appID
+			$appID = $app | Select CI_ID
+		}		
+		# If caching is disabled
+		else {
+			log "Caching disabled. Retrieving app from MECM..." -debug 2 -level ($level + 2)
+			
+			# Get "fast" app from MECM
+			
+			#$idSanitized = Sanitize-ID $id
+			#$appID = Get-CMApplication -Fast | Where { $_.$idType -match $idSanitized } | Select CI_ID
+			#$appID = Get-CMApplication -Fast | Where { $_.$idType -like $idSanitized } | Select CI_ID
+			
+			$appID = Get-CMApplication -Fast | Where { $_.$idType -eq $id } | Select CI_ID
+		}
+		log "appID: `"$appID`"." -debug 2 -level ($level + 3)
 		
 		# If app was found
 		if($appID.CI_ID) {
@@ -190,7 +229,35 @@ function Get-AppSupersedence {
 				
 				# Get full app proerties now that we know which app it is
 				log "Getting app properties..." -level ($level + 2) -debug 2
-				$app = Get-CMApplication -Id $appID.CI_ID
+				
+				# If caching is not disabled
+				if(-not $DisableCaching) {
+					log "Looking for app in `"full`" cache..." -debug 2 -level ($level + 3)
+					
+					# Get "full" app cache variable
+					$cachedApps = Get-Variable -Name "CachedApps" -Scope "Script" -ValueOnly
+					
+					# Attempt to get the "full" app from the cache
+					$app = $cachedApps | Where { $_.CI_ID -eq $appID.CI_ID }
+					
+					# If we failed, get it from MECM and cache it
+					if(-not $app) {
+						log "App not found in cache. Retrieving from MECM..." -debug 2 -level ($level + 4)
+						$app = Get-CMApplication -ID $appID.CI_ID
+						Set-Variable -Name "CachedApps" -Scope "Script" -Value ($cachedApps + @($app))
+					}
+					else {
+						log "Found app in cache." -debug 2 -level ($level + 4)
+					}
+				}
+				# If caching is disabled
+				else {
+					log "Caching disabled. Retrieving app from MECM..." -debug 2 -level ($level + 2)
+					
+					# Get full app from MECM
+					$app = Get-CMApplication -Id $appID.CI_ID
+				}
+				
 				log "Done getting app properties." -level ($level + 2) -debug 2
 				
 				log "Parsing app properties..." -level ($level + 2) -debug 2
@@ -209,12 +276,12 @@ function Get-AppSupersedence {
 				#>
 				
 				# Grab relevant properties, and add custom properties
-				$app | Add-Member -NotePropertyName "_name" -NotePropertyValue $app.LocalizedDisplayName # For convenience
-				$app | Add-Member -NotePropertyName "_auto" -NotePropertyValue $auto
-				#$appFull | Add-Member -NotePropertyName "_isSuperseding" -NotePropertyValue $isSuperseding
-				$app | Add-Member -NotePropertyName "_supersedes" -NotePropertyValue @()
-				$app | Add-Member -NotePropertyName "_hasInvalid" -NotePropertyValue $false
-				$app | Add-Member -NotePropertyName "_supersedenceLength" -NotePropertyValue 0
+				$app | Add-Member -Force -NotePropertyName "_name" -NotePropertyValue $app.LocalizedDisplayName # For convenience
+				$app | Add-Member -Force -NotePropertyName "_auto" -NotePropertyValue $auto
+				#$appFull | Add-Member -Force -NotePropertyName "_isSuperseding" -NotePropertyValue $isSuperseding
+				$app | Add-Member -Force -NotePropertyName "_supersedes" -NotePropertyValue @()
+				$app | Add-Member -Force -NotePropertyName "_hasInvalid" -NotePropertyValue $false
+				$app | Add-Member -Force -NotePropertyName "_supersedenceLength" -NotePropertyValue 0
 				log "Done parsing app properties..." -level ($level + 2) -debug 2
 			}
 			elseif(@($appID).count -eq 0) {

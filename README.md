@@ -24,7 +24,8 @@ Also outputs some useful info about the referenced apps.
 
 # Requirements
 - Must be run on a system that has the SCCM Console app installed. The ConfigurationManager Powershell modules rely on this Windows-only application.
-- Must be run AS a user with permissions to the campus SCCM service.  
+- Must be run in Powershell 5.1. The ConfigurationManager Powershell module requires it.
+- Must be run AS a user with permissions to the campus SCCM service.
 
 # Usage
 1. Download `Get-AppSupersedence.psm1` to `$HOME\Documents\WindowsPowerShell\Modules\Get-AppSupersedence\Get-AppSupersedence.psm1`
@@ -194,6 +195,14 @@ Default is `sccmcas.ad.uillinois.edu`.
 Optional string, representing the local path where the ConfigurationManager Powershell module exists.  
 Default value is `$($ENV:SMS_ADMIN_UI_PATH)\..\ConfigurationManager.psd1`, because there's where it is for us.  
 You may need to change this, depending on your SCCM (Console) version. The path has changed across various versions of SCCM, but the environment variable used by default should account for those changes in most cases.  
+
+### -DisableCaching
+Optional switch.  
+By default, the app caches information about apps retrieved from MECM, so that if it's required more than once (e.g. multiple apps supersede the same app), it only has to be retrieved from MECM once.  
+For example, most of our app supersedence chains are configured linearly (e.g. v4 supersedes v3, which supersedes v2, which supersedes v1). However some are configured cumulatively, such that each version supersedes EVERY older version (e.g. v4 supersedes v3, v2 and v1, and v3 supersedes v2 and v1, and v2 supersedes v1).  
+In these cases, caching significantly improves the script's performance, as it greatly minimizes redundant communications with MECM, since the script recursively evaluates each supersedence chain. For example, in an instance where an app has a dozen or so such cumulative supersedences, caching reduces the script runtime from several hours down to several minutes.  
+Ostensibly, this cumulative supersedence is done to optimize MECM client/Software Center performance, so that it doesn't choke (which is known to happen) when trying to enumerate long supersedence chains all the way back to the oldest version.  
+Disabling caching is not recommended and is only left in because it was the default behavior before the caching feature was added.  
 
 # Notes
 - Expect it to take something on the order of 10 minutes to process a large OSD TS.  Depends on how numerous and complicated the supersedence chains are.  
