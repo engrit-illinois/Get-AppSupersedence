@@ -14,7 +14,7 @@ This is known to cause issues, particularly when an application with an invalid 
 When such a TS is deployed to Software Center, the TS can fail to run, throwing a very cryptic and difficult to troubleshoot error: `The software could not be found on any servers at this time.`.  
 This error may also be generic, caused by other issues such as problems with a referenced app's revision history being too large, or invalid.  
 
-Take a list of application names and outputs all supersence chains of those apps. Can take the following:
+Takes a list of application names and outputs all supersence chains of those apps. Can take the following:
 - An array of strings, representing the names of the applications.  
 - A string representing the name of a TS. Application names are pulled from the application references used by that TS.  
 - A string representing the name of a collection. Application names are pulled from the application deployments to that collection.  
