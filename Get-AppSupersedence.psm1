@@ -469,12 +469,14 @@ function Get-AppSupersedence {
 		$i = 0
 		log -blank 1
 		foreach($app in $apps) {
-			Write-Progress -Activity "Just hold on a minute, jeez..." -Status "Crawling supersedence chain of `"$($app._name)`"..." -PercentComplete (($i / $apps.count) * 100)
-			log "Crawling supersedence chain of `"$($app._name)`"..."
-			$app._supersedes = Get-Supersedence $app 1
-			$i += 1
-			log "Done crawling supersedence chain of `"$($app._name)`"..." -debug 1
-			log -blank 1 -debug 1
+			if($app._name -ne $INVALID) {
+				Write-Progress -Activity "Just hold on a minute, jeez..." -Status "Crawling supersedence chain of `"$($app._name)`"..." -PercentComplete (($i / $apps.count) * 100)
+				log "Crawling supersedence chain of `"$($app._name)`"..."
+				$app._supersedes = Get-Supersedence $app 1
+				$i += 1
+				log "Done crawling supersedence chain of `"$($app._name)`"..." -debug 1
+				log -blank 1 -debug 1
+			}
 		}
 		$apps
 	}
@@ -596,6 +598,7 @@ function Get-AppSupersedence {
 	# Prints the whole supersedence chain for each of the TS's directly-referenced apps
 	function Print-Supersedences($apps) {
 		$numInvalid = 0
+		$numInvalidApps = 0
 		
 		log -blank 1
 		log "Supersedence chains:"
@@ -627,7 +630,8 @@ function Get-AppSupersedence {
 				else { log $invalidString -level 2 }
 			}				
 			else {
-				log "This app itself is invalid." -level 2
+				log "This app itself is invalid." -red -level 2
+				$numInvalidApps += 1
 			}
 			log -blank 1
 			
@@ -636,9 +640,17 @@ function Get-AppSupersedence {
 		}
 		log "======================================================================================================"
 		log -blank 1
+		
+		$numInvalidAppsString = "Invalid apps: $numInvalidApps."
+		$params = @{}
+		if($numInvalidApps -gt 0) { $params.red = $true }
+		log $numInvalidAppsString @params
+		
 		$numInvalidString = "Apps with invalid supersedence references: $numInvalid."
-		if($numInvalid -gt 0) { log $numInvalidString -red }
-		else { log $numInvalidString }
+		$params = @{}
+		if($numInvalid -gt 0) { $params.red = $true }
+		log $numInvalidString @params
+		
 		log -blank 1
 	}
 
