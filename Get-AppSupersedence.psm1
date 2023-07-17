@@ -303,7 +303,7 @@ function Get-AppSupersedence {
 				# Make a dummy app
 				log "Filling app properties with `"$INVALID`"..." -level ($level + 2) -debug 2
 				
-				$app = @{
+				$app = [PSCustomObject]@{
 					"_name" = $INVALID
 					"CI_UniqueID" = $INVALID
 					"CIVersion" = $INVALID
@@ -321,6 +321,7 @@ function Get-AppSupersedence {
 		log "Done getting app where `"$idType`" matches `"$id`"..." -debug 2 -level ($level + 1)
 		
 		# Return app object
+		$app | Add-Member -Force -NotePropertyName "_givenId" -NotePropertyValue $id
 		$app
 	}
 
@@ -602,27 +603,32 @@ function Get-AppSupersedence {
 		log -blank 1
 		
 		foreach ($app in $apps) {
-			log "`"$($app._name)`" ($($app.CI_UniqueID)):" -level 1
+			log "Given ID: `"$($app._givenId)`", Name: `"$($app._name)`", ModelName: ($($app.CI_UniqueID)):" -level 1
 			log "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" -level 1
 			log -blank 1
 			
-			log "Supersedence chain:" -level 2
-			log "----------------------------------" -level 2
-			Print-Supersedence $app -level 2
-			log -blank 1
-			
-			log "Other infos:" -level 2
-			log "----------------------------------" -level 2
-			log "CIVersion (Revision): `"$($app.CIVersion)`"" -level 2
-			log "SDMPackageVersion (?): `"$($app.SDMPackageVersion)`"" -level 2
-			log "SourceCIVersion (?): `"$($app.SourceCIVersion)`"" -level 2
-			log "AutoInstall (From TS w/o being deployed): `"$($app._auto)`"" -level 2
-			$invalidString = "Has an invalid supersedence ref: `"$($app._hasInvalid)`""
-			if($app._hasInvalid) {
-				log $invalidString -red -level 2
-				$numInvalid += 1
+			if($app._name -ne $INVALID) {
+				log "Supersedence chain:" -level 2
+				log "----------------------------------" -level 2
+				Print-Supersedence $app -level 2
+				log -blank 1
+				
+				log "Other infos:" -level 2
+				log "----------------------------------" -level 2
+				log "CIVersion (Revision): `"$($app.CIVersion)`"" -level 2
+				log "SDMPackageVersion (?): `"$($app.SDMPackageVersion)`"" -level 2
+				log "SourceCIVersion (?): `"$($app.SourceCIVersion)`"" -level 2
+				log "AutoInstall (From TS w/o being deployed): `"$($app._auto)`"" -level 2
+				$invalidString = "Has an invalid supersedence ref: `"$($app._hasInvalid)`""
+				if($app._hasInvalid) {
+					log $invalidString -red -level 2
+					$numInvalid += 1
+				}
+				else { log $invalidString -level 2 }
+			}				
+			else {
+				log "This app itself is invalid." -level 2
 			}
-			else { log $invalidString -level 2 }
 			log -blank 1
 			
 			log "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" -level 1
