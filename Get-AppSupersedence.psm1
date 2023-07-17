@@ -603,7 +603,7 @@ function Get-AppSupersedence {
 		log -blank 1
 		
 		foreach ($app in $apps) {
-			log "Given ID: `"$($app._givenId)`", Name: `"$($app._name)`", ModelName: ($($app.CI_UniqueID)):" -level 1
+			log "Given ID: `"$($app._givenId)`", Name: `"$($app._name)`", ModelName: $($app.CI_UniqueID):" -level 1
 			log "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" -level 1
 			log -blank 1
 			
