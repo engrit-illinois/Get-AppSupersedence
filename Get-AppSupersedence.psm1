@@ -9,7 +9,11 @@ function Get-AppSupersedence {
 	# - Count number of unique superseded apps and output with "other info"
 
 	param(
-		[Parameter(Position=0,Mandatory=$true,ParameterSetName="App1")]
+		[Parameter(Position=0,Mandatory=$true,ParameterSetName="Computer")]
+		[Alias("Device","Resource")]
+		[string]$Computer,
+		
+		[Parameter(Position=0,Mandatory=$true,ParameterSetName="Apps")]
 		[Alias("Apps","Applications")]
 		[string[]]$AppNames,
 		
@@ -89,8 +93,8 @@ function Get-AppSupersedence {
 	# -----------------------------------------------------------------
 
 	# Loads the ConfigMgr power shell module, and connects to the Site.
-	function Prep-SCCM {
-		log "Preparing connection to SCCM..."
+	function Prep-MECM {
+		log "Preparing connection to MECM..."
 		# Customizations
 		$initParams = @{}
 		#$initParams.Add("Verbose", $true) # Uncomment this line to enable verbose logging
@@ -108,7 +112,7 @@ function Get-AppSupersedence {
 
 		# Set the current location to be the site code.
 		Set-Location "$($SiteCode):\" @initParams
-		log "Done preparing connection to SCCM." -debug 2
+		log "Done preparing connection to MECM." -debug 2
 		log -blank 1
 	}
 
@@ -381,6 +385,47 @@ function Get-AppSupersedence {
 		$result
 	}
 	
+	function Get-ComputerDeployedApps($compName) {
+		# Array for storing app refs
+		$appNames = @()
+		
+		log "Getting info for computer `"$compName`"..." -level 1
+		$comp = Get-CMDevice -Resource -Fast -Name $compName
+
+		if($comp) {
+			log "Getting collections containing computer..." -level 1
+			# If I can find a way to do this with ConfigurationManager PowerShell module cmdlets, then this part of the script could support PowerShell 7
+			# Originally based on code from here: https://www.verboon.info/2014/10/use-powershell-to-find-all-collections-where-the-specified-device-has-a-membership/
+			$collIds = Get-WmiObject -ComputerName $Provider -Class "sms_fullcollectionmembership" -Namespace "root\SMS\site_$SiteCode" -Filter "ResourceID = '$($comp.ResourceId)'" | Select -ExpandProperty "CollectionID"
+			
+			log "Getting info for each collection..." -level 1
+			$deps = @()
+			$collIds | ForEach-Object {
+				log "Getting info for collection `"$_`"..." -level 2
+				$collInfo = Get-CMCollection -Id $_
+				$collName = $collInfo.Name
+				log "Collection name: `"$collName`"" -level 3
+				
+				log "Getting application deployments to collection..." -level 3
+				$collDeps = Get-CMApplicationDeployment -CollectionName $collName
+				$deps += @($collDeps)
+			}
+			
+			if(-not $deps) {
+				log "No application deployments were found for computer `"$compName`"!" -red
+			}
+			else {
+				log "Found $(@($deps).count) applications deployed to computer `"$compName`"."
+				$appNames = $deps.ApplicationName
+			}
+		}
+		else {
+			log "Computer not found in MECM!" -level 2 -red
+		}
+		
+		$appNames
+	}
+	
 	function Get-CollectionDeployedApps($col) {
 		# Array for storing app refs
 		$appNames = @()
@@ -393,8 +438,8 @@ function Get-AppSupersedence {
 			log "Failed to get collection application deployments from SCCM!" -red
 		}
 		
-		if(!$colData) {
-			log "No application deployments were found for collection!" -red
+		if(-not $colData) {
+			log "No application deployments were found for collection `"$col`"!" -red
 		}
 		else {
 			log "Found $(@($colData).count) applications deployed to collection `"$col`"."
@@ -418,8 +463,8 @@ function Get-AppSupersedence {
 			log "Failed to get task sequence from SCCM!" -red
 		}
 		
-		if(!$tsData) {
-			log "No references were found in task sequence!" -red
+		if(-not $tsData) {
+			log "No references were found in TS `"$ts`"!" -red
 		}
 		else {
 			$tsRefs = $tsData | Select ReferencesCount,References
@@ -683,7 +728,11 @@ function Get-AppSupersedence {
 		log "Getting list of app names or IDs..."
 		$appArray = @()
 		
-		if($AppNames) {
+		if($Computer) {
+			log "-Computer was specified." -level 1 -debug 1
+			$appArray = Get-ComputerDeployedApps $Computer
+		}
+		elseif($AppNames) {
 			log "-AppNames was specified. App names were given as an array." -level 1 -debug 1
 			$appArray = $AppNames
 		}
@@ -700,8 +749,9 @@ function Get-AppSupersedence {
 		}
 		
 		if(@($appArray).count -gt 0) {
+			$appArray = $appArray | Sort
 			$appArrayString = $appArray -join "`", `""
-			log "`"$appArrayString`"" -level 2
+			log "`"$appArrayString`"" -level 1
 		}
 		
 		log "Done getting list of app names or IDs." -debug 2
@@ -714,7 +764,7 @@ function Get-AppSupersedence {
 		log "Getting app data..."
 		$apps = @()
 		
-		if($AppNames -or $Collection) {
+		if($Computer -or $AppNames -or $Collection) {
 			foreach($appName in $appArray) {
 				log "Getting app data for app: `"$appName`"..." -level 1
 				$app = Get-App "LocalizedDisplayName" $appName 1
@@ -725,7 +775,7 @@ function Get-AppSupersedence {
 		elseif($TS) {
 			foreach($appRef in $appArray) {
 				# This logic would be simpler if we just got the names of the referenced apps,
-				# But doing that would require getting the applicaiton information first, which we are going to do later anyway,
+				# But doing that would require getting the application information first, which we are going to do later anyway,
 				# so we may as well just use the IDs we have to save on Get-CMApplication calls.
 				log "Getting app data for app with ModelName: `"$appRef`"..." -level 1
 				$app = Get-App "ModelName" $appRef 1
@@ -734,7 +784,7 @@ function Get-AppSupersedence {
 			}
 		}
 		else {
-			log "-AppNames, nor -Collection, nor -TS was specified!" -red
+			log "-Computer, nor -AppNames, nor -Collection, nor -TS was specified!" -red
 		}
 		
 		log "Done getting app data." -debug 2
@@ -745,7 +795,7 @@ function Get-AppSupersedence {
 	function Process {
 		log -blank 1
 		
-		Prep-SCCM
+		Prep-MECM
 		
 		$appArray = Get-AppArray
 		if($appArray) {

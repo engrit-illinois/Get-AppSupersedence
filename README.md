@@ -15,9 +15,10 @@ When such a TS is deployed to Software Center, the TS can fail to run, throwing 
 This error may also be generic, caused by other issues such as problems with a referenced app's revision history being too large, or invalid.  
 
 Takes a list of application names and outputs all supersence chains of those apps. Can take the following:
+- An MECM device name. Application names are pulled from the list of deployments to collections which contain the given device.  
 - An array of strings, representing the names of the applications.  
-- A string representing the name of a TS. Application names are pulled from the application references used by that TS.  
-- A string representing the name of a collection. Application names are pulled from the application deployments to that collection.  
+- A string representing the name of a TS. Application names are pulled from the application references used by the given TS.  
+- A string representing the name of a collection. Application names are pulled from the application deployments to the given collection.  
 
 Handles apps with multiple references and complex/nested supersedences (recursively).  
 Also outputs some useful info about the referenced apps.  
@@ -25,11 +26,13 @@ Also outputs some useful info about the referenced apps.
 # Requirements
 - Must be run on a system that has the SCCM Console app installed. The ConfigurationManager Powershell modules rely on this Windows-only application.
 - Must be run in Powershell 5.1. The ConfigurationManager Powershell module requires it.
+  - PowerShell 7 compatibility is untested. It may work, except when using the `-Computer` parameter, which definitely won't work in v7.
 - Must be run AS a user with permissions to the campus SCCM service.
 
 # Usage
 1. Download `Get-AppSupersedence.psm1` to the appropriate subdirectory of your PowerShell [modules directory](https://github.com/engrit-illinois/how-to-install-a-custom-powershell-module).
 2. Run it, e.g.:
+    - `Get-AppSupersedence -Computer "comp-name-01"`
     - `Get-AppSupersedence -AppNames "Name of app"`
     - `Get-AppSupersedence -AppNames "Name of app 1","Name of app 2","Name of app 3"`
     - `Get-AppSupersedence -TS "Name of TS"`
@@ -156,18 +159,23 @@ mseng3@ENGRIT-MSENG3 cd C:\git\get-appsupersedence\>
 
 # Parameters
 
+### -Computer
+Required if not using `-AppNames`, `-TS`, or `-Collection`.  
+An array of strings representing the names of the applications for which to poll supersedence.  
+Aliases: `-Device`, `-Resource`  
+
 ### -AppNames
-Required if not using `-TS` or `-Collection`.  
+Required if not using `-Computer`, `-TS` or `-Collection`.  
 An array of strings representing the names of the applications for which to poll supersedence.  
 Aliases: `-Apps`, `-Applications`  
 
 ### -TS
-Required if not using `-AppNames` or `-Collection`.  
+Required if not using `-Computer`, `-AppNames` or `-Collection`.  
 A string representing the name of a TS from which app references will be pulled.  
 Aliases: `-TaskSequence`  
 
 ### -Collection
-Required if not using `-AppNames` or `-TS`.  
+Required if not using `-Computer`, `-AppNames` or `-TS`.  
 A string representing the name of a collection from which app deployments will be pulled.  
 
 ### -Log
