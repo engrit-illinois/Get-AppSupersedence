@@ -161,22 +161,22 @@ mseng3@ENGRIT-MSENG3 cd C:\git\get-appsupersedence\>
 
 ### -Computer
 Required if not using `-AppNames`, `-TS`, or `-Collection`.  
-A string representing the name of a device object. All application deployments to the given device will have their supersedence polled.  
+A string representing the name of a device object. Supersedence will be polled from the application of each application deployment to the given device.  
 Aliases: `-Device`, `-Resource`  
+
+### -Collection
+Required if not using `-Computer`, `-AppNames` or `-TS`.  
+A string representing the name of a collection. Supersedence will be polled from the application of seach application deployment to the given collection.  
 
 ### -AppNames
 Required if not using `-Computer`, `-TS` or `-Collection`.  
-An array of strings representing the names of the applications for which to poll supersedence.  
+An array of strings representing the LocalizedDisplayNames of one or more applications. Supersedence will be polled from each given application.  
 Aliases: `-Apps`, `-Applications`  
 
 ### -TS
 Required if not using `-Computer`, `-AppNames` or `-Collection`.  
-A string representing the name of a TS from which app references will be pulled.  
+A string representing the name of a task sequence. Supersedence will be polled from the application of app reference in the given TS.  
 Aliases: `-TaskSequence`  
-
-### -Collection
-Required if not using `-Computer`, `-AppNames` or `-TS`.  
-A string representing the name of a collection from which app deployments will be pulled.  
 
 ### -Log
 Optional.  
