@@ -161,7 +161,7 @@ mseng3@ENGRIT-MSENG3 cd C:\git\get-appsupersedence\>
 
 ### -Computer
 Required if not using `-AppNames`, `-TS`, or `-Collection`.  
-An array of strings representing the names of the applications for which to poll supersedence.  
+A string representing the name of a device object. All application deployments to the given device will have their supersedence polled.  
 Aliases: `-Device`, `-Resource`  
 
 ### -AppNames
