@@ -170,7 +170,8 @@ A string representing the name of a collection. Supersedence will be polled from
 
 ### -AppNames
 Required if not using `-Computer`, `-TS` or `-Collection`.  
-An array of strings representing the LocalizedDisplayNames of one or more applications. Supersedence will be polled from each given application.  
+An array of strings representing the name of one or more applications. Supersedence will be polled from each given application.  
+The app name needs to be the name of the application package in MECM, and not the LocalizedDisplayName shown in Software Center.  
 Aliases: `-Apps`, `-Applications`  
 
 ### -TS
