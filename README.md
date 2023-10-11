@@ -166,7 +166,7 @@ Aliases: `-Device`, `-Resource`
 
 ### -Collection
 Required if not using `-Computer`, `-AppNames` or `-TS`.  
-A string representing the name of a collection. Supersedence will be polled from the application of seach application deployment to the given collection.  
+A string representing the name of a collection. Supersedence will be polled from the application of each application deployment to the given collection.  
 
 ### -AppNames
 Required if not using `-Computer`, `-TS` or `-Collection`.  
