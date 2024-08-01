@@ -26,7 +26,7 @@ Also outputs some useful info about the referenced apps.
 # Requirements
 - Must be run on a system that has the SCCM Console app installed. The ConfigurationManager Powershell modules rely on this Windows-only application.
 - Must be run in Powershell 5.1. The ConfigurationManager Powershell module requires it.
-  - PowerShell 7 compatibility is untested. It may work, except when using the `-Computer` parameter, which definitely won't work in v7.
+  - PowerShell 7 compatibility is untested. It may work, except when using the `-Computer` parameter, which definitely won't work in v7. This is due to a reliance on `Get-WmiObject` which cannot be updated to use `Get-CimInstance` unless the user has permissions to leverage remote PowerShell management on the site servers (which is not the case in the author's environment).
 - Must be run AS a user with permissions to the campus SCCM service.
 
 # Usage
