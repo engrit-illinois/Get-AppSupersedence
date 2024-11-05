@@ -11,7 +11,7 @@
 The purpose of this script is to help identify SCCM applications which have invalid supersedence chains.  
 This happens when older version of applications are deleted, but are still being referenced by other applications which supersede them.  
 This is known to cause issues, particularly when an application with an invalid supersedence chain is referenced by a task sequence (TS).  
-When such a TS is deployed to Software Center, the TS can fail to run, throwing a very cryptic and difficult to troubleshoot error: `The software could not be found on any servers at this time.`. For whatever reason, the is not a problem when running such a TS from WinPE.  
+When such a TS is deployed to Software Center, the TS can fail to run, throwing a very cryptic and difficult to troubleshoot error: `The software could not be found on any servers at this time.`. For whatever reason, this is not a problem when running such a TS from WinPE.  
 This error may also be generic, caused by other issues such as problems with a referenced app's revision history being too large, or invalid.  
 
 Takes a list of application names and outputs all supersence chains of those apps. Can take the following:
