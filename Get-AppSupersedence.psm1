@@ -24,6 +24,8 @@ function Get-AppSupersedence {
 		[Alias("TaskSequence")]
 		[string]$TS,
 		
+		[switch]$DisablePsVersionCheck,
+		
 		# Debug output verbosity
 		# 0 = Just the intended output
 		# 1 = Output from intermediate steps
@@ -790,10 +792,37 @@ function Get-AppSupersedence {
 		log "Done getting app data." -debug 2
 		$apps
 	}
+	
+	function Validate-SupportedPowershellVersion {
+		if(-not (Test-SupportedPowershellVersion)) {
+			Throw "Unsupported PowerShell version!"
+		}
+	}
+
+	function Test-SupportedPowershellVersion {
+		if($DisablePsVersionCheck) {
+			log "-DisablePsVersionCheck was specified. Skipping PowerShell version check."
+			return $true
+		}
+		
+		log "This custom module only supports PowerShell v5.1. Checking PowerShell version..."
+		
+		$ver = $Host.Version
+		log "PowerShell version is `"$($ver.Major).$($ver.Minor)`"." -L 1
+		if(
+			($ver.Major -eq 5) -and
+			($ver.Minor -eq 1)
+		) {
+			return $true
+		}
+		return $false
+	}
 
 	# Do the dew
-	function Process {
+	function Do-Stuff {
 		log -blank 1
+		
+		Validate-SupportedPowershellVersion
 		
 		Prep-MECM
 		
@@ -820,7 +849,7 @@ function Get-AppSupersedence {
 	# Begin
 	# -----------------------------------------------------------------
 
-	Process
+	Do-Stuff
 	
 	log "EOF"
 }
