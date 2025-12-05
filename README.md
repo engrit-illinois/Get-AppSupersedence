@@ -159,48 +159,53 @@ mseng3@ENGRIT-MSENG3 cd C:\git\get-appsupersedence\>
 
 # Parameters
 
-### -Computer
+### -Computer [string]
 Required if not using `-AppNames`, `-TS`, or `-Collection`.  
 A string representing the name of a device object. Supersedence will be polled from the application of each application deployment to the given device.  
 Aliases: `-Device`, `-Resource`  
 
-### -Collection
+### -Collection [string]
 Required if not using `-Computer`, `-AppNames` or `-TS`.  
 A string representing the name of a collection. Supersedence will be polled from the application of each application deployment to the given collection.  
 
-### -AppNames
+### -AppNames [string[]]
 Required if not using `-Computer`, `-TS` or `-Collection`.  
 An array of strings representing the name of one or more applications. Supersedence will be polled from each given application.  
 The app name needs to be the name of the application package in MECM, and not the LocalizedDisplayName shown in Software Center.  
 Aliases: `-Apps`, `-Applications`  
 
-### -TS
+### -TS [string]
 Required if not using `-Computer`, `-AppNames` or `-Collection`.  
 A string representing the name of a task sequence. Supersedence will be polled from the application of app reference in the given TS.  
 Aliases: `-TaskSequence`  
 
-### -Log
+### -DisablePsVersionCheck
+Optional switch.  
+When specified the module will attempt to run regardless of the current version of PowerShell.  
+Normally, the module refuses to run if the current version of PowerShell is greater than 5.1.  
+
+### -Log [string]
 Optional.  
 The full path to a log file that will have a copy of all the console output.  
 
-### -DebugLevel
+### -DebugLevel [int]
 Optional. Recommend leaving default. Only useful for debugging the script.  
 0 (default): Just the intended output  
 1: Output from intermediate steps  
 2: Output from various minor operations and variable value checks  
 Aliases: `-Verbosity`
 
-### -SiteCode
+### -SiteCode [string]
 Optional. Recommend leaving default.  
 The site code of the SCCM site to query.  
 Default is `MP0`.  
 
-### -Provider
+### -Provider [string]
 Optional. Recommend leaving default.  
 The SMS provider machine name.  
 Default is `sccmcas.ad.uillinois.edu`.  
 
-### -CMPSModulePath
+### -CMPSModulePath [string]
 Optional string, representing the local path where the ConfigurationManager Powershell module exists.  
 Default value is `$($ENV:SMS_ADMIN_UI_PATH)\..\ConfigurationManager.psd1`, because there's where it is for us.  
 You may need to change this, depending on your SCCM (Console) version. The path has changed across various versions of SCCM, but the environment variable used by default should account for those changes in most cases.  
